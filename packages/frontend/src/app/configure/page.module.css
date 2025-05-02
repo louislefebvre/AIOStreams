@@ -231,3 +231,20 @@
   ); /* Slight background highlight on click */
   border-color: rgba(255, 255, 255, 0.815); /* More visible border on click */
 }
+
+.input {
+  width: 100%;
+  padding: 8px;
+  margin: 4px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.helpText {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 4px;
+  font-family: monospace;
+  white-space: pre-line;
+}

@@ -23,7 +23,10 @@ export class Easynews extends BaseWrapper {
       url,
       addonId,
       userConfig,
-      indexerTimeout || Settings.DEFAULT_EASYNEWS_TIMEMOUT
+      indexerTimeout || Settings.DEFAULT_EASYNEWS_TIMEMOUT,
+      {
+        'User-Agent': Settings.DEFAULT_EASYNEWS_USER_AGENT,
+      }
     );
   }
 

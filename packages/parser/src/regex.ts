@@ -131,4 +131,6 @@ export const PARSE_REGEX = {
     Malay: createLanguageRegex('malay'),
     Latino: createLanguageRegex('latino|lat'),
   },
+  releaseGroup:
+    /- ?(?!\d+$|S\d+|\d+x|ep?\d+|[^[]+]$)([^\-. []+[^\-. [)\]\d][^\-. [)\]]*)(?:\[[\w.-]+])?(?=\.\w{2,4}$|$)/i,
 };

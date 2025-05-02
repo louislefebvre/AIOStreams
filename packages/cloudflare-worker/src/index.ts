@@ -116,7 +116,9 @@ export default {
           return createResponse('Encrypted Config Not Supported', 400);
         }
         try {
-          decodedConfig = unminifyConfig(JSON.parse(atob(config)));
+          decodedConfig = unminifyConfig(
+            JSON.parse(Buffer.from(config, 'base64').toString('utf-8'))
+          );
         } catch (error: any) {
           console.error(error);
           return createJsonResponse(

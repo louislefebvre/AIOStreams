@@ -31,7 +31,10 @@ export class OrionStremioAddon extends BaseWrapper {
       url,
       addonId,
       userConfig,
-      indexerTimeout || Settings.DEFAULT_ORION_TIMEOUT
+      indexerTimeout || Settings.DEFAULT_ORION_TIMEOUT,
+      {
+        'User-Agent': Settings.DEFAULT_ORION_USER_AGENT,
+      }
     );
   }
 
