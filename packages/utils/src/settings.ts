@@ -73,6 +73,10 @@ export class Settings {
     .CACHE_MEDIAFUSION_CONFIG_TTL
     ? parseInt(process.env.CACHE_MEDIAFUSION_CONFIG_TTL)
     : 30 * 24 * 60 * 60; // 30 days
+  public static readonly CACHE_STREMTHRU_IP_TTL = process.env
+    .CACHE_STREMTHRU_IP_TTL
+    ? parseInt(process.env.CACHE_STREMTHRU_IP_TTL)
+    : 900;
   public static readonly MAX_CACHE_SIZE = process.env.MAX_CACHE_SIZE
     ? parseInt(process.env.MAX_CACHE_SIZE)
     : 10240;
@@ -84,6 +88,10 @@ export class Settings {
   public static readonly MAX_KEYWORD_FILTERS = process.env.MAX_KEYWORD_FILTERS
     ? parseInt(process.env.MAX_KEYWORD_FILTERS)
     : 30;
+  public static readonly MAX_REGEX_SORT_PATTERNS = process.env
+    .MAX_REGEX_SORT_PATTERNS
+    ? parseInt(process.env.MAX_REGEX_SORT_PATTERNS)
+    : 20;
   public static readonly MAX_MOVIE_SIZE = process.env.MAX_MOVIE_SIZE
     ? parseInt(process.env.MAX_MOVIE_SIZE)
     : 161061273600; // 150GiB
@@ -110,10 +118,21 @@ export class Settings {
   public static readonly MEDIAFLOW_IP_TIMEOUT = process.env.MEDIAFLOW_IP_TIMEOUT
     ? parseInt(process.env.MEDIAFLOW_IP_TIMEOUT)
     : 30000;
-  public static readonly ENCRYPT_MEDIAFLOW_URLS = process.env
-    .ENCRYPT_MEDIAFLOW_URLS
-    ? process.env.ENCRYPT_MEDIAFLOW_URLS === 'true'
-    : false;
+  public static readonly ENCRYPT_MEDIAFLOW_URLS =
+    process.env.ENCRYPT_MEDIAFLOW_URLS !== 'false';
+
+  // StremThru settings
+  public static readonly DEFAULT_STREMTHRU_URL =
+    process.env.DEFAULT_STREMTHRU_URL ?? '';
+  public static readonly DEFAULT_STREMTHRU_CREDENTIAL =
+    process.env.DEFAULT_STREMTHRU_CREDENTIAL ?? '';
+  public static readonly DEFAULT_STREMTHRU_PUBLIC_IP =
+    process.env.DEFAULT_STREMTHRU_PUBLIC_IP ?? '';
+  public static readonly STREMTHRU_TIMEOUT = process.env.STREMTHRU_TIMEOUT
+    ? parseInt(process.env.STREMTHRU_TIMEOUT)
+    : 30000;
+  public static readonly ENCRYPT_STREMTHRU_URLS =
+    process.env.ENCRYPT_STREMTHRU_URLS !== 'false';
 
   // Comet settings
   public static readonly COMET_URL =

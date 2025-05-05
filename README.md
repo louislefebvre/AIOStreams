@@ -18,17 +18,12 @@
     <img src="https://img.shields.io/badge/Discord-Join_Chat-7289DA?logo=discord&logoColor=white&style=for-the-badge" alt="Discord Server">
   </a>
 
-  
-
-
-  
-
   <!-- Add other badges here if needed -->
 </p>
 
 ## 📦 Description
 
-AIOStreams consoloidates multiple Stremio addons and debrid services into a single, easily configurable addon. It allows highly customisable filtering, sorting, and formatting of results and supports proxying all your streams through [MediaFlow Proxy](https://github.com/mhdzumair/mediaflow-proxy) for improved compatibility and IP restriction bypassing.
+AIOStreams consolidates multiple Stremio addons and debrid services into a single, easily configurable addon. It allows highly customisable filtering, sorting, and formatting of results and supports proxying all your streams through [MediaFlow Proxy](https://github.com/mhdzumair/mediaflow-proxy) or [StremThru](https://github.com/MunifTanjim/stremthru) for improved compatibility and IP restriction bypassing.
 
 ## ✨ Key Features
 
@@ -38,18 +33,19 @@ AIOStreams consoloidates multiple Stremio addons and debrid services into a sing
 - **🧰 Advanced Filtering**
   - Filter results by resolution, quality, visual tags (e.g., HDR, DV), audio tags (e.g., Atmos, DTS), and video encodes.
   - Filter by keywords present in the stream title.
+  - Filter by custom regex pattern. (*Requires an `API_KEY` to be set*)
   - Specify minimum and maximum file sizes individually for episodes and movies.
   - Prioritise and/or exclude specific languages.
-- **📊 Sophisticated Sorting** – Sort aggregated results by quality, resolution, size, cached status, visual tags, audio tags, encodes, seeders (for torrents), service provider, language, or personal.
+- **📊 Sophisticated Sorting** – Sort aggregated results by quality, resolution, size, cached status, visual tags, audio tags, encodes, seeders (for torrents), service provider, language, personal preferences, or multiple custom regex patterns (*Regex patterns require an `API_KEY` to be set*)
 - **🗂️ Intelligent Deduplication** - Intelligently removes duplicate results and prioritises specific services and addons for the same file based on your configuration.
 - **🚦 Result Limiting** - Limit the number of results shown per resolution.
 - **🎨 Customizable Formatting**:
   - Choose from predefined formats (e.g., `gdrive`, `minimalistic-gdrive`, `torrentio`, `torbox`).
   - Utilise a **Custom Formatter** system to define exactly how stream information is displayed. See the [Custom Formatter Wiki page](https://github.com/Viren070/AIOStreams/wiki/Custom-Formatter) for details.
   - View the formatters in the live preview at the configuration page.
-- **🔁 MediaFlow Proxy Integration** - Proxy your streams through MediaFlow to allow for:
+- **🔁 Proxy Integration** - Proxy your streams through either [**MediaFlow**](https://github.com/mhdzumair/mediaflow-proxy) or [**StremThru**](https://github.com/MunifTanjim/stremthru) to allow for:
   - **IP Restriction Bypass**: Bypass simultaneous IP restrictions on some services
-  - **Improved Compatibility**: Using MediaFlow Proxy improves compatibility with some apps and external players (like Infuse)
+  - **Improved Compatibility**: Using a proxy improves compatibility with some apps and external players (like Infuse)
 
 ## 🧩 Supported Addons
 
@@ -113,7 +109,7 @@ Regardless of the method you choose, once AIOStreams is accessible, navigate to 
 AIOStreams is a free and open-source project maintained by me and its contributors. If you find it useful, you can support its development in the following ways:
 
 - ⭐ **Star the Repository** - Show your support and help boost visibility.
-- ⭐ **Star on [Stremio Addons](https://beta.stremio-addons.net/addons/aiostreams-elfhosted)** - Spread the word.
+- ⭐ **Star on [Stremio Addons](https://beta.stremio-addons.net/addons/aiostreams)** - Spread the word.
 - 🤝 **Contributions Welcome** - Issues, pull requests, and ideas for improvement are always appreciated.
 - ☕ **Donate**
   - [Ko-fi](https://ko-fi.com/viren070)
@@ -129,6 +125,6 @@ AIOStreams and its developer do not host, store, or distribute any content. All 
 
 - Thanks to [sleeyax/stremio-easynews-addon](https://github.com/Sleeyax/stremio-easynews-addon) for the repository structure and Dockerfile..
 - Thanks to all the developers of the upstream addons that AIOStreams integrates.
-- [MediaFlow](https://github.com/Mhdzumair/mediaflow-proxy) for the MediaFlow Proxy integration used in this addon.
+- [Mhdzumair/MediaFlow](https://github.com/Mhdzumair/mediaflow-proxy) and [MunifTanjim/stremthru](https://github.com/MunifTanjim/stremthru) which allow stream proxying. 
 - Issue templates adapted from [5rahim/seanime](https://github.com/5rahim/seanime).
 - Custom formatter system inspired by and adapted from [diced/zipline](https://github.com/diced/zipline).

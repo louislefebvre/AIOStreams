@@ -20,6 +20,9 @@ export async function generateMediaFlowStreams(
     };
   }[]
 ): Promise<string[] | null> {
+  if (!streams.length) {
+    return [];
+  }
   if (!mediaFlowConfig) {
     throw new Error('MediaFlow configuration is missing');
   }
@@ -115,7 +118,7 @@ export async function getMediaFlowPublicIp(
     const mediaFlowUrl = new URL(mediaFlowConfig.proxyUrl.replace(/\/$/, ''));
     if (PRIVATE_CIDR.test(mediaFlowUrl.hostname)) {
       // MediaFlow proxy URL is a private IP address
-      logger.debug(
+      logger.error(
         'MediaFlow proxy URL is a private IP address so returning null'
       );
       return null;
@@ -159,6 +162,10 @@ export async function getMediaFlowPublicIp(
     const publicIp = data.ip;
     if (publicIp && cache) {
       cache.set(cacheKey, publicIp, Settings.CACHE_MEDIAFLOW_IP_TTL);
+    } else {
+      logger.error(
+        `MediaFlow did not respond with a public IP. Response: ${JSON.stringify(data)}`
+      );
     }
     return publicIp;
   } catch (error: any) {

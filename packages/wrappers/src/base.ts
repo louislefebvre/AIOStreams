@@ -324,23 +324,31 @@ export class BaseWrapper {
     let filename = stream?.behaviorHints?.filename || stream.filename;
 
     // if filename behaviorHint is not present, attempt to look for a filename in the stream description or title
-    let description = stream.description || stream.title;
-    const episodeRegex =
-      /(?<![^ [_(\-.]])(?:s(?:eason)?[ .\-_]?(\d+)[ .\-_]?(?:e(?:pisode)?[ .\-_]?(\d+))?|(\d+)[xX](\d+))(?![^ \])_.-])/;
-    const yearRegex = /(?<![^ [_(\-.])(\d{4})(?=[ \])_.-]|$)/i;
-    if (!filename && description) {
-      const lines = description.split('\n');
-      filename =
-        lines.find(
-          (line: string) => line.match(episodeRegex) || line.match(yearRegex)
-        ) || lines[0];
-    }
+    let description = stream.description || stream.title || '';
 
-    let stringToParse: string = filename || description || '';
-    if (!(filename.match(episodeRegex) || filename.match(yearRegex))) {
-      stringToParse = description.replace(/\n/g, ' ').trim();
+    // attempt to find a valid filename by looking for season/episode or year in the description line by line,
+    // and fall back to using the full description.
+    let parsedInfo: ParsedNameData | undefined = undefined;
+    const potentialFilenames = [
+      filename,
+      ...description.split('\n').splice(0, 5),
+    ].filter((line) => line && line.length > 0);
+    for (const line of potentialFilenames) {
+      parsedInfo = parseFilename(line);
+      if (
+        parsedInfo.year ||
+        (parsedInfo.season && parsedInfo.episode) ||
+        parsedInfo.episode
+      ) {
+        break;
+      } else {
+        parsedInfo = undefined;
+      }
     }
-    let parsedInfo: ParsedNameData = parseFilename(stringToParse);
+    if (!parsedInfo) {
+      // fall back to using full description as info source
+      parsedInfo = parseFilename(description);
+    }
 
     // look for size in one of the many random places it could be
     let size: number | undefined;

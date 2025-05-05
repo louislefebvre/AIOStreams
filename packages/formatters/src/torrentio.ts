@@ -36,7 +36,7 @@ export function torrentioFormat(stream: ParsedStream): {
   }
 
   if (stream.filename || stream.folderName) {
-    description += `\n${stream.folderName}/${stream.filename}`;
+    description += `\n${stream.folderName ? stream.folderName : ''}/${stream.filename ? stream.filename : ''}`;
   }
   if (
     stream.size ||

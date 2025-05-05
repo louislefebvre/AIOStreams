@@ -16,6 +16,7 @@ const moduleMap: { [key: string]: string } = {
   addon: '🧩  ADDON',
   parser: '🔍  PARSER',
   mediaflow: '🌊  MEDIAFLOW',
+  stremthru: '✨  STREMTHRU',
 };
 
 // Define colors for each log level

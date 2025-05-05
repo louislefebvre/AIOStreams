@@ -37,16 +37,47 @@ import {
   Settings,
   createLogger,
   generateMediaFlowStreams,
+  getStremThruConfig,
+  getStremThruPublicIp,
+  generateStremThruStreams,
 } from '@aiostreams/utils';
 import { errorStream } from './responses';
+import { safeRegexTest } from './utils/regex';
 
 const logger = createLogger('addon');
 
 export class AIOStreams {
   private config: Config;
+  private preCompiledRegexPatterns: RegExp[] = [];
 
   constructor(config: any) {
     this.config = config;
+    // Pre-compile regex patterns if they exist
+    if (this.config.regexSortPatterns) {
+      const regexSortPatterns = this.config.regexSortPatterns
+        .split(/\s+/)
+        .filter(Boolean);
+      this.preCompiledRegexPatterns = regexSortPatterns.map(
+        (pattern) => new RegExp(pattern)
+      );
+    }
+  }
+
+  private async retryGetIp<T>(
+    getter: () => Promise<T | null>,
+    label: string,
+    maxRetries: number = 3
+  ): Promise<T> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const result = await getter();
+      if (result) {
+        return result;
+      }
+      logger.warn(
+        `Failed to get ${label}, retrying... (${attempt}/${maxRetries})`
+      );
+    }
+    throw new Error(`Failed to get ${label} after ${maxRetries} attempts`);
   }
 
   private async getRequestingIp() {
@@ -57,23 +88,18 @@ export class AIOStreams {
     if (userIp && PRIVATE_IP_REGEX.test(userIp)) {
       userIp = undefined;
     }
-    const mediaFlowConfig = getMediaFlowConfig(this.config);
-    if (mediaFlowConfig.mediaFlowEnabled) {
-      let mediaFlowIp: string | null = null;
-      // if mediaflow is enabled, we MUST use its IP and throw an error if we can't get it
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        mediaFlowIp = await getMediaFlowPublicIp(
-          mediaFlowConfig,
-          this.config.instanceCache
-        );
-        if (mediaFlowIp) break;
-      }
-      if (!mediaFlowIp) {
-        throw new Error('Failed to get MediaFlow IP after 3 attempts');
-      }
-      if (mediaFlowIp) {
-        userIp = mediaFlowIp;
-      }
+    const mediaflowConfig = getMediaFlowConfig(this.config);
+    const stremThruConfig = getStremThruConfig(this.config);
+    if (mediaflowConfig.mediaFlowEnabled) {
+      userIp = await this.retryGetIp(
+        () => getMediaFlowPublicIp(mediaflowConfig, this.config.instanceCache),
+        'MediaFlow public IP'
+      );
+    } else if (stremThruConfig.stremThruEnabled) {
+      userIp = await this.retryGetIp(
+        () => getStremThruPublicIp(stremThruConfig, this.config.instanceCache),
+        'StremThru public IP'
+      );
     }
     return userIp;
   }
@@ -86,7 +112,7 @@ export class AIOStreams {
       this.config.requestingIp = await this.getRequestingIp();
     } catch (error) {
       logger.error(error);
-      return [errorStream(`Failed to get MediaFlow IP`)];
+      return [errorStream(`Failed to get Proxy IP`)];
     }
 
     const { parsedStreams, errorStreams } =
@@ -347,22 +373,35 @@ export class AIOStreams {
       // apply regex filters if API key is set
       if (this.config.apiKey && this.config.regexFilters) {
         const { excludePattern, includePattern } = this.config.regexFilters;
-        
+
         if (excludePattern) {
           const regexExclude = new RegExp(excludePattern, 'i');
-          if (parsedStream.filename && regexExclude.test(parsedStream.filename)) {
+          if (
+            parsedStream.filename &&
+            safeRegexTest(regexExclude, parsedStream.filename)
+          ) {
             skipReasons.excludeRegex++;
             return false;
           }
-          if (parsedStream.indexers && regexExclude.test(parsedStream.indexers)) {
+          if (
+            parsedStream.indexers &&
+            safeRegexTest(regexExclude, parsedStream.indexers)
+          ) {
             skipReasons.excludeRegex++;
             return false;
           }
         }
-        
+
         if (includePattern) {
           const regexInclude = new RegExp(includePattern, 'i');
-          if (!((parsedStream.filename && regexInclude.test(parsedStream.filename)) || (parsedStream.indexers && regexInclude.test(parsedStream.indexers)))) {
+          if (
+            !(
+              (parsedStream.filename &&
+                safeRegexTest(regexInclude, parsedStream.filename)) ||
+              (parsedStream.indexers &&
+                safeRegexTest(regexInclude, parsedStream.indexers))
+            )
+          ) {
             skipReasons.requiredRegex++;
             return false;
           }
@@ -559,35 +598,39 @@ export class AIOStreams {
     return streams;
   }
 
-  private shouldProxyStream(stream: ParsedStream): boolean {
-    const mediaFlowConfig = getMediaFlowConfig(this.config);
-    if (!mediaFlowConfig.mediaFlowEnabled) return false;
+  private shouldProxyStream(
+    stream: ParsedStream,
+    mediaFlowConfig: ReturnType<typeof getMediaFlowConfig>,
+    stremThruConfig: ReturnType<typeof getStremThruConfig>
+  ): boolean {
     if (!stream.url) return false;
+
+    const streamProvider = stream.provider ? stream.provider.id : 'none';
+
     // // now check if mediaFlowConfig.proxiedAddons or mediaFlowConfig.proxiedServices is not null
     // logger.info(this.config.mediaFlowConfig?.proxiedAddons);
     // logger.info(stream.addon.id);
     if (
-      mediaFlowConfig.proxiedAddons &&
-      mediaFlowConfig.proxiedAddons.length > 0 &&
-      !mediaFlowConfig.proxiedAddons.includes(stream.addon.id)
+      mediaFlowConfig.mediaFlowEnabled &&
+      (!mediaFlowConfig.proxiedAddons?.length ||
+        mediaFlowConfig.proxiedAddons.includes(stream.addon.id)) &&
+      (!mediaFlowConfig.proxiedServices?.length ||
+        mediaFlowConfig.proxiedServices.includes(streamProvider))
     ) {
-      return false;
+      return true;
     }
 
     if (
-      (mediaFlowConfig.proxiedServices &&
-        mediaFlowConfig.proxiedServices.length > 0 &&
-        stream.provider &&
-        !mediaFlowConfig.proxiedServices.includes(stream.provider.id)) ||
-      (mediaFlowConfig.proxiedServices &&
-        mediaFlowConfig.proxiedServices.length > 0 &&
-        !stream.provider &&
-        !mediaFlowConfig.proxiedServices.includes('none'))
+      stremThruConfig.stremThruEnabled &&
+      (!stremThruConfig.proxiedAddons?.length ||
+        stremThruConfig.proxiedAddons.includes(stream.addon.id)) &&
+      (!stremThruConfig.proxiedServices?.length ||
+        stremThruConfig.proxiedServices.includes(streamProvider))
     ) {
-      return false;
+      return true;
     }
 
-    return true;
+    return false;
   }
 
   private getFormattedText(parsedStream: ParsedStream): {
@@ -637,20 +680,38 @@ export class AIOStreams {
   private async createStreamObjects(
     parsedStreams: ParsedStream[]
   ): Promise<Stream[]> {
+    const mediaFlowConfig = getMediaFlowConfig(this.config);
+    const stremThruConfig = getStremThruConfig(this.config);
+
     // Identify streams that require proxying
     const streamsToProxy = parsedStreams
       .map((stream, index) => ({ stream, index }))
-      .filter(({ stream }) => stream.url && this.shouldProxyStream(stream));
+      .filter(
+        ({ stream }) =>
+          stream.url &&
+          this.shouldProxyStream(stream, mediaFlowConfig, stremThruConfig)
+      );
 
     const proxiedUrls = streamsToProxy.length
-      ? await generateMediaFlowStreams(
-          getMediaFlowConfig(this.config),
-          streamsToProxy.map(({ stream }) => ({
-            url: stream.url!,
-            filename: stream.filename,
-            headers: stream.stream?.behaviorHints?.proxyHeaders,
-          }))
-        )
+      ? mediaFlowConfig.mediaFlowEnabled
+        ? await generateMediaFlowStreams(
+            mediaFlowConfig,
+            streamsToProxy.map(({ stream }) => ({
+              url: stream.url!,
+              filename: stream.filename,
+              headers: stream.stream?.behaviorHints?.proxyHeaders,
+            }))
+          )
+        : stremThruConfig.stremThruEnabled
+          ? await generateStremThruStreams(
+              stremThruConfig,
+              streamsToProxy.map(({ stream }) => ({
+                url: stream.url!,
+                filename: stream.filename,
+                headers: stream.stream?.behaviorHints?.proxyHeaders,
+              }))
+            )
+          : null
       : null;
 
     const removeIndexes = new Set<number>();
@@ -677,6 +738,11 @@ export class AIOStreams {
     }
 
     // Build final Stream objects
+    const proxyBingeGroupPrefix = mediaFlowConfig.mediaFlowEnabled
+      ? 'mfp.'
+      : stremThruConfig.stremThruEnabled
+        ? 'st.'
+        : '';
     const streamObjects: Stream[] = await Promise.all(
       parsedStreams.map((parsedStream) => {
         const { name, description } = this.getFormattedText(parsedStream);
@@ -704,7 +770,7 @@ export class AIOStreams {
               ? Math.floor(parsedStream.size)
               : undefined,
             filename: parsedStream.filename,
-            bingeGroup: `${parsedStream.proxied ? 'mfp.' : ''}${Settings.ADDON_ID}|${parsedStream.addon.name}|${combinedTags.join('|')}`,
+            bingeGroup: `${parsedStream.proxied ? proxyBingeGroupPrefix : ''}${Settings.ADDON_ID}|${parsedStream.addon.name}|${combinedTags.join('|')}`,
             proxyHeaders: parsedStream.stream?.behaviorHints?.proxyHeaders,
             notWebReady: parsedStream.stream?.behaviorHints?.notWebReady,
           },
@@ -740,6 +806,36 @@ export class AIOStreams {
           (resolution) => resolution[b.resolution]
         )
       );
+    } else if (field === 'regexSort') {
+      if (!this.config.regexSortPatterns) return 0;
+
+      try {
+        for (let i = 0; i < this.preCompiledRegexPatterns.length; i++) {
+          const regex = this.preCompiledRegexPatterns[i];
+          const aMatch = a.filename ? safeRegexTest(regex, a.filename) : false;
+          const bMatch = b.filename ? safeRegexTest(regex, b.filename) : false;
+
+          // If both match or both don't match, continue to next pattern
+          if ((aMatch && bMatch) || (!aMatch && !bMatch)) continue;
+
+          // If one matches and the other doesn't, use direction to determine order
+          const direction = this.config.sortBy.find(
+            (sort) => Object.keys(sort)[0] === 'regexSort'
+          )?.direction;
+          if (direction === 'asc') {
+            // In ascending order, matching files come last
+            return aMatch ? 1 : -1;
+          } else {
+            // In descending order, matching files come first
+            return aMatch ? -1 : 1;
+          }
+        }
+
+        // If we get here, no patterns matched or all patterns matched the same way
+        return 0;
+      } catch (e) {
+        return 0;
+      }
     } else if (field === 'cached') {
       let aCanbeCached = a.provider;
       let bCanbeCached = b.provider;

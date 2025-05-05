@@ -43,8 +43,17 @@ const isValidBase64 = (value: string): boolean => {
   }
 };
 
+const isValidBase64Compressed = (value: string): boolean => {
+  if (value.startsWith('B-')) return true;
+  return false;
+};
+
 const isValidConfigFormat = (value: string): boolean => {
-  return value ? isValueEncrypted(value) || isValidBase64(value) : false;
+  return value
+    ? isValueEncrypted(value) ||
+        isValidBase64(value) ||
+        isValidBase64Compressed(value)
+    : false;
 };
 
 const handleCopyEvent = (text: string) => {
