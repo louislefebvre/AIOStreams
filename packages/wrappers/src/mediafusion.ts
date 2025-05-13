@@ -23,8 +23,11 @@ export class MediaFusion extends BaseWrapper {
       userConfig,
       indexerTimeout || Settings.DEFAULT_MEDIAFUSION_TIMEOUT,
       {
-        'User-Agent': Settings.DEFAULT_MEDIAFUSION_USER_AGENT,
         encoded_user_data: configString && !overrideUrl ? configString : '',
+        // only set the user agent if it is defined in the settings, otherwise user agent would be empty in base class
+        ...(Settings.DEFAULT_MEDIAFUSION_USER_AGENT
+          ? { 'User-Agent': Settings.DEFAULT_MEDIAFUSION_USER_AGENT }
+          : {}),
       }
     );
   }

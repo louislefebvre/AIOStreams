@@ -26,9 +26,9 @@ export class Jackettio extends BaseWrapper {
       addonId,
       userConfig,
       indexerTimeout || Settings.DEFAULT_JACKETTIO_TIMEOUT,
-      {
-        'User-Agent': Settings.DEFAULT_JACKETTIO_USER_AGENT,
-      }
+      Settings.DEFAULT_JACKETTIO_USER_AGENT
+        ? { 'User-Agent': Settings.DEFAULT_JACKETTIO_USER_AGENT }
+        : undefined
     );
   }
 
@@ -36,20 +36,20 @@ export class Jackettio extends BaseWrapper {
     const parsedStream = super.parseStream(stream);
     if (stream.url && parsedStream.type === 'stream') {
       if (
-        Settings.FORCE_JACKETTIO_HOSTNAME !== null ||
-        Settings.FORCE_JACKETTIO_PORT !== null ||
-        Settings.FORCE_JACKETTIO_PROTOCOL !== null
+        Settings.FORCE_JACKETTIO_HOSTNAME !== undefined ||
+        Settings.FORCE_JACKETTIO_PORT !== undefined ||
+        Settings.FORCE_JACKETTIO_PROTOCOL !== undefined
       ) {
         // modify the URL according to settings, needed when using a local URL for requests but a public stream URL is needed.
         const url = new URL(stream.url);
 
-        if (Settings.FORCE_JACKETTIO_PROTOCOL !== null) {
+        if (Settings.FORCE_JACKETTIO_PROTOCOL !== undefined) {
           url.protocol = Settings.FORCE_JACKETTIO_PROTOCOL;
         }
-        if (Settings.FORCE_JACKETTIO_PORT !== null) {
-          url.port = Settings.FORCE_JACKETTIO_PORT;
+        if (Settings.FORCE_JACKETTIO_PORT !== undefined) {
+          url.port = Settings.FORCE_JACKETTIO_PORT.toString();
         }
-        if (Settings.FORCE_JACKETTIO_HOSTNAME !== null) {
+        if (Settings.FORCE_JACKETTIO_HOSTNAME !== undefined) {
           url.hostname = Settings.FORCE_JACKETTIO_HOSTNAME;
         }
         parsedStream.result.url = url.toString();

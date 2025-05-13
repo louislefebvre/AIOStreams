@@ -49,18 +49,6 @@ Object.entries(Settings).forEach(([key, value]) => {
   }
 });
 
-let CUSTOM_CONFIGS: Record<string, string> = {};
-if (Settings.CUSTOM_CONFIGS) {
-  try {
-    CUSTOM_CONFIGS = JSON.parse(Settings.CUSTOM_CONFIGS);
-    logger.info(
-      `Loaded ${Object.keys(CUSTOM_CONFIGS).length} custom configs under aliases ${Object.keys(CUSTOM_CONFIGS).join(', ')}`
-    );
-  } catch (error: any) {
-    logger.error(`CUSTOM_CONFIGS is not valid JSON: ${error.message}`);
-  }
-}
-
 // attempt to load the secret key
 try {
   if (Settings.SECRET_KEY) loadSecretKey(true);
@@ -74,8 +62,6 @@ try {
     `The secret key is invalid. You will not be able to generate configurations. You can generate a new secret key by running the following command\n${command}`
   );
 }
-
-const cache = new Cache(Settings.MAX_CACHE_SIZE);
 
 // Built-in middleware for parsing JSON
 app.use(express.json());
@@ -138,11 +124,11 @@ app.get('/:config/configure', (req, res) => {
   try {
     let configJson = extractJsonConfig(config);
     let configString = config;
-    if (CUSTOM_CONFIGS) {
+    if (Settings.CUSTOM_CONFIGS) {
       const customConfig = extractCustomConfig(config);
       if (customConfig) {
         configJson = customConfig;
-        configString = decodeURIComponent(CUSTOM_CONFIGS[config]);
+        configString = decodeURIComponent(Settings.CUSTOM_CONFIGS[config]);
       }
     }
     if (isValueEncrypted(configString)) {
@@ -252,7 +238,6 @@ app.get('/:config/stream/:type/:id.json', (req, res: Response): void => {
       return;
     }
     configJson.requestingIp = getIp(req);
-    configJson.instanceCache = cache;
     const aioStreams = new AIOStreams(configJson);
     aioStreams
       .getStreams(streamRequest)
@@ -390,7 +375,7 @@ function extractJsonConfig(config: string): Config {
   ) {
     return extractEncryptedOrEncodedConfig(config, 'Config');
   }
-  if (CUSTOM_CONFIGS) {
+  if (Settings.CUSTOM_CONFIGS) {
     const customConfig = extractCustomConfig(config);
     if (customConfig) return customConfig;
   }
@@ -398,7 +383,7 @@ function extractJsonConfig(config: string): Config {
 }
 
 function extractCustomConfig(config: string): Config | undefined {
-  const customConfig = CUSTOM_CONFIGS?.[config];
+  const customConfig = Settings.CUSTOM_CONFIGS[config];
   if (!customConfig) return undefined;
   logger.info(
     `Found custom config for alias ${config}, attempting to extract config`

@@ -17,10 +17,13 @@ interface FormatterPreviewProps {
 const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const DEFAULT_FILENAME =
+    'Movie.Title.2023.2160p.BluRay.HEVC.DV.TrueHD.Atmos.7.1.iTA.ENG-GROUP.mkv';
+  const DEFAULT_FOLDERNAME =
     'Movie.Title.2023.2160p.BluRay.HEVC.DV.TrueHD.Atmos.7.1.iTA.ENG-GROUP';
-
   // Create a sample stream for preview
   const [filename, setFilename] = React.useState<string>(DEFAULT_FILENAME);
+  const [foldername, setFoldername] =
+    React.useState<string>(DEFAULT_FOLDERNAME);
   const [indexers, setIndexers] = React.useState<string>('RARBG');
   const [seeders, setSeeders] = React.useState<number>(125);
   const [usenetAge, setUsenetAge] = React.useState<string>('10d'); // Days
@@ -42,6 +45,7 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
       name: addonName,
     },
     filename: filename,
+    folderName: foldername !== filename ? foldername : undefined,
     size: fileSize,
     duration: duration, // 2h 32m
     provider:
@@ -90,6 +94,10 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
 
   const resetFilename = () => {
     setFilename(DEFAULT_FILENAME);
+  };
+
+  const resetFoldername = () => {
+    setFoldername(DEFAULT_FOLDERNAME);
   };
 
   // Toggle switch component with animation fix
@@ -193,6 +201,38 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
                 className={styles.resetButton}
                 onClick={resetFilename}
                 title="Reset to default filename"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Folder name input with reset button */}
+          <div className={styles.formGroup}>
+            <label className={styles.inputLabel}>Folder Name:</label>
+            <div className={styles.filenameControls}>
+              <div className={styles.filenameInputContainer}>
+                <input
+                  type="text"
+                  value={foldername}
+                  onChange={(e) => setFoldername(e.target.value)}
+                  className={styles.filenameInput}
+                />
+              </div>
+              <button
+                className={styles.resetButton}
+                onClick={resetFoldername}
+                title="Reset to default folder name"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

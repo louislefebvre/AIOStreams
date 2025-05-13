@@ -7,6 +7,7 @@ import { createLogger, maskSensitiveInfo } from './logger';
 
 const logger = createLogger('mediaflow');
 
+const cache = Cache.getInstance<string, string>('publicIp');
 const PRIVATE_CIDR = /^(10\.|127\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/;
 
 export async function generateMediaFlowStreams(
@@ -97,8 +98,7 @@ export async function generateMediaFlowStreams(
 }
 
 export async function getMediaFlowPublicIp(
-  mediaFlowConfig: Config['mediaFlowConfig'],
-  cache: Cache<string, string>
+  mediaFlowConfig: Config['mediaFlowConfig']
 ) {
   try {
     if (!mediaFlowConfig) {

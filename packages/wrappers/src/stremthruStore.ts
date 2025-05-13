@@ -26,9 +26,9 @@ export class StremThruStore extends BaseWrapper {
       addonId,
       userConfig,
       indexerTimeout || Settings.DEFAULT_STREMTHRU_STORE_TIMEOUT,
-      {
-        'User-Agent': Settings.DEFAULT_STREMTHRU_STORE_USER_AGENT,
-      }
+      Settings.DEFAULT_STREMTHRU_STORE_USER_AGENT
+        ? { 'User-Agent': Settings.DEFAULT_STREMTHRU_STORE_USER_AGENT }
+        : undefined
     );
   }
 

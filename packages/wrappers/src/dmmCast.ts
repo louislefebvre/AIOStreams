@@ -26,9 +26,9 @@ export class DMMCast extends BaseWrapper {
       addonId,
       userConfig,
       indexerTimeout || Settings.DEFAULT_DMM_CAST_TIMEOUT,
-      {
-        'User-Agent': Settings.DEFAULT_DMM_CAST_USER_AGENT,
-      }
+      Settings.DEFAULT_DMM_CAST_USER_AGENT
+        ? { 'User-Agent': Settings.DEFAULT_DMM_CAST_USER_AGENT }
+        : undefined
     );
   }
 

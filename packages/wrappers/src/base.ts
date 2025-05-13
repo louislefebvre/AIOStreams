@@ -190,15 +190,6 @@ export class BaseWrapper {
   }
   protected async getStreams(streamRequest: StreamRequest): Promise<Stream[]> {
     const url = this.getStreamUrl(streamRequest);
-    const cache = this.userConfig.instanceCache;
-    const requestCacheKey = getTextHash(url);
-    const cachedStreams = cache ? cache.get(requestCacheKey) : undefined;
-    if (cachedStreams) {
-      logger.info(
-        `Returning cached streams for ${this.addonName} (${this.getLoggableUrl(url)})`
-      );
-      return cachedStreams;
-    }
     try {
       const response = await this.makeRequest(url);
       if (!response.ok) {
@@ -213,13 +204,6 @@ export class BaseWrapper {
       const results = (await response.json()) as { streams: Stream[] };
       if (!results.streams) {
         throw new Error('Failed to respond with streams');
-      }
-      if (Settings.CACHE_STREAM_RESULTS && cache) {
-        cache.set(
-          requestCacheKey,
-          results.streams,
-          Settings.CACHE_STREAM_RESULTS_TTL
-        );
       }
       return results.streams;
     } catch (error: any) {
@@ -340,6 +324,7 @@ export class BaseWrapper {
         (parsedInfo.season && parsedInfo.episode) ||
         parsedInfo.episode
       ) {
+        filename = line;
         break;
       } else {
         parsedInfo = undefined;
@@ -348,6 +333,11 @@ export class BaseWrapper {
     if (!parsedInfo) {
       // fall back to using full description as info source
       parsedInfo = parseFilename(description);
+      filename = filename
+        ? filename
+        : description
+          ? description.split('\n')[0]
+          : undefined;
     }
 
     // look for size in one of the many random places it could be

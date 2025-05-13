@@ -45,9 +45,9 @@ export class Torbox extends BaseWrapper {
       addonId,
       userConfig,
       indexerTimeout || Settings.DEFAULT_TORBOX_TIMEOUT,
-      {
-        'User-Agent': Settings.DEFAULT_TORBOX_USER_AGENT,
-      }
+      Settings.DEFAULT_TORBOX_USER_AGENT
+        ? { 'User-Agent': Settings.DEFAULT_TORBOX_USER_AGENT }
+        : undefined
     );
   }
 

@@ -25,9 +25,9 @@ export class Peerflix extends BaseWrapper {
       addonId,
       userConfig,
       indexerTimeout || Settings.DEFAULT_PEERFLIX_TIMEOUT,
-      {
-        'User-Agent': Settings.DEFAULT_PEERFLIX_USER_AGENT,
-      }
+      Settings.DEFAULT_PEERFLIX_USER_AGENT
+        ? { 'User-Agent': Settings.DEFAULT_PEERFLIX_USER_AGENT }
+        : undefined
     );
   }
 }

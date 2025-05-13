@@ -21,8 +21,6 @@ function createResponse(message: string, status: number): Response {
   });
 }
 
-const cache = new Cache(1024);
-
 export default {
   async fetch(request, env, ctx): Promise<Response> {
     try {
@@ -150,7 +148,6 @@ export default {
           request.headers.get('CF-Connecting-IP') ||
           request.headers.get('X-Client-IP') ||
           undefined;
-        decodedConfig.instanceCache = cache;
 
         const aioStreams = new AIOStreams(decodedConfig);
         const streams = await aioStreams.getStreams(streamRequest);

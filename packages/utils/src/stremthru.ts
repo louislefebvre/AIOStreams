@@ -6,6 +6,8 @@ import { createLogger, maskSensitiveInfo } from './logger';
 
 const logger = createLogger('stremthru');
 
+const cache = Cache.getInstance<string, string>('publicIp');
+
 const PRIVATE_CIDR = /^(10\.|127\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/;
 
 export async function generateStremThruStreams(
@@ -44,6 +46,9 @@ export async function generateStremThruStreams(
       }
     }
     data.append(`req_headers[${i}]`, req_headers);
+    if (stream.filename) {
+      data.append(`filename[${i}]`, stream.filename);
+    }
   });
 
   if (Settings.ENCRYPT_STREMTHRU_URLS) {
@@ -97,8 +102,7 @@ export async function generateStremThruStreams(
 }
 
 export async function getStremThruPublicIp(
-  stremThruConfig: Config['stremThruConfig'],
-  cache: Cache<string, string>
+  stremThruConfig: Config['stremThruConfig']
 ) {
   try {
     if (!stremThruConfig) {
@@ -154,7 +158,10 @@ export async function getStremThruPublicIp(
     }
 
     const data = await response.json();
-    const publicIp = data.data?.ip?.machine;
+    const publicIp =
+      typeof data.data?.ip?.exposed === 'object' // available from `v0.71.0`
+        ? data.data.ip.exposed['*'] || data.data.ip.machine
+        : data.data?.ip?.machine;
     if (publicIp && cache) {
       cache.set(cacheKey, publicIp, Settings.CACHE_STREMTHRU_IP_TTL);
     } else {

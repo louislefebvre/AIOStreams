@@ -25,9 +25,9 @@ export class Debridio extends BaseWrapper {
       addonId,
       userConfig,
       indexerTimeout || Settings.DEFAULT_DEBRIDIO_TIMEOUT,
-      {
-        'User-Agent': Settings.DEFAULT_DEBRIDIO_USER_AGENT,
-      }
+      Settings.DEFAULT_DEBRIDIO_USER_AGENT
+        ? { 'User-Agent': Settings.DEFAULT_DEBRIDIO_USER_AGENT }
+        : undefined
     );
   }
 }

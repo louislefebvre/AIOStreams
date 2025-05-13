@@ -1110,10 +1110,20 @@ export default function Configure() {
           <div className={styles.section}>
             <h2 style={{ padding: '5px' }}>Regex Sort Patterns</h2>
             <p style={{ padding: '5px' }}>
-              Enter space-separated regex patterns to sort streams. Streams will
-              be sorted based on the order of matching patterns. Matching files
-              will come first in descending order, and last in ascending order
-              for each pattern.
+              Enter a space separated list of regex patterns, optionally with a
+              name, to sort streams by. Streams will be sorted based on the
+              order of matching patterns. Matching files will come first in
+              descending order, and last in ascending order for each pattern.
+              You can give each regex a name using the following syntax:
+              <br />
+              <br />
+              <code>regexName{`<::>`}regexPattern</code>
+              <br />
+              <br />
+              For example, <code>3L{`<::>`}\b(3L|BiZKiT)\b</code> will sort
+              streams matching the regex <code>\b(3L|BiZKiT)\b</code> first and
+              those streams will have the <code>{`regexMatched`}</code> property
+              with the value <code>3L</code> in the custom formatter.
             </p>
             <input
               type="text"

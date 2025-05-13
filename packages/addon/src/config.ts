@@ -514,17 +514,24 @@ export function validateConfig(
     }
 
     for (const pattern of patterns) {
+      const delimiter = '<::>';
+      const delimiterIndex = pattern.indexOf(delimiter);
+      let name: string = 'Unamed';
+      let regexPattern = pattern;
+      if (delimiterIndex !== -1) {
+        name = pattern.slice(0, delimiterIndex).replace(/_/g, ' ');
+        regexPattern = pattern.slice(delimiterIndex + delimiter.length);
+      }
       try {
-        new RegExp(pattern);
+        new RegExp(regexPattern);
       } catch (e) {
         return createResponse(
           false,
           'invalidRegexSortPattern',
-          `Invalid regex sort pattern: ${pattern}`
+          `Invalid regex sort pattern: ${name ? `"${name}" ` : ''}${regexPattern}`
         );
       }
     }
   }
-
   return createResponse(true, null, null);
 }
